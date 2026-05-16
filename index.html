@@ -531,7 +531,10 @@
     let currentPlate = {};
     const GAME_LIMIT = 20;
 
-    function init() { updateHighScoreDisplay(); resetGame(); }
+    function init() { 
+    // This will force the app to hide the quiz and only show the menu on startup
+    showMenu(); 
+}
      
     function resetGame() {
         correct = 0; total = 0;
