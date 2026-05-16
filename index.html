@@ -643,7 +643,83 @@
         document.getElementById('results-area').classList.remove('hidden');
         document.getElementById('final-correct').innerText = correct;
     }
+// Global variable to hold our spotted codes array
+let spottedPlates = JSON.parse(localStorage.getItem('spottedPlates')) || [];
+let currentSearchedCode = ""; // Keeps track of what is currently showing in search
 
+// Modify your existing handleSearch function to show the button
+function handleSearch() {
+    const input = document.getElementById('search-input').value.toUpperCase().trim();
+    const resultDiv = document.getElementById('search-result');
+    const spotBtn = document.getElementById('spot-btn');
+    
+    if (input === "") {
+        resultDiv.innerText = "Tippe einen Code...";
+        spotBtn.classList.add('hidden');
+        return;
+    }
+
+    const found = plates.find(p => p.code.toUpperCase() === input);
+    if (found) {
+        currentSearchedCode = found.code; // save it for the button
+        resultDiv.innerHTML = `<span style="color: #2ecc71;">${found.code} - ${found.city}</span><br><small style="font-size: 0.8rem; color: #bdc3c7;">(${found.state})</small>`;
+        
+        // Change button text depending on if they already spotted it
+        if (spottedPlates.includes(found.code)) {
+            spotBtn.innerText = "✕ Aus Liste entfernen";
+            spotBtn.style.background = "#e74c3c";
+        } else {
+            spotBtn.innerText = "✓ Kennzeichen sichten!";
+            spotBtn.style.background = "#2ecc71";
+        }
+        spotBtn.classList.remove('hidden');
+    } else {
+        resultDiv.innerText = "Nicht gefunden";
+        spotBtn.classList.add('hidden');
+    }
+}
+
+// Function to add/remove plate from the list
+function toggleSpot() {
+    if (!currentSearchedCode) return;
+    
+    const index = spottedPlates.indexOf(currentSearchedCode);
+    if (index > -1) {
+        // Already spotted, so remove it
+        spottedPlates.splice(index, 1);
+    } else {
+        // Not spotted yet, so add it
+        spottedPlates.push(currentSearchedCode);
+    }
+    
+    // Save to phone's memory
+    localStorage.setItem('spottedPlates', JSON.stringify(spottedPlates));
+    
+    // Refresh the UI
+    handleSearch(); 
+    updateSpottedDisplay();
+}
+
+// Function to update the list visible on the Main Menu
+function updateSpottedDisplay() {
+    document.getElementById('spot-count').innerText = spottedPlates.length;
+    const listDiv = document.getElementById('spotted-list');
+    
+    if (spottedPlates.length === 0) {
+        listDiv.innerText = "Noch keine Kennzeichen gesichtet.";
+        return;
+    }
+    
+    // Map the codes back to their full data to show City names
+    let htmlContent = "";
+    spottedPlates.forEach(code => {
+        const plateData = plates.find(p => p.code === code);
+        if (plateData) {
+            htmlContent += `<div style="padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">🚘 <strong>${plateData.code}</strong> - ${plateData.city}</div>`;
+        }
+    });
+    listDiv.innerHTML = htmlContent;
+}
     window.onload = init;
 
 // Function to play a Louder, Sharper "Ping" (Correct)
